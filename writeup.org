@@ -1,0 +1,156 @@
+* Problem
+  Joe wants to send 20 BitCoin to each of his three kids none of which
+  have a bitcoin wallet. They have each requested that he send them
+  coin in their favorite currencies: Ethereum, Litecoin, and DASH.
+  
+  Joe wants to get the best rates possible when he converts the coins to
+  give his children. Write a web app that will find out what the best
+  exchanges would be for each of these trades. The app should talk to
+  two exchange (some suggestions: BTC-E, Poloniex, Bittrex) APIs to get
+  real data. Please use ES7/ES8 style Node.js.
+  
+  The results should display what the exchange rate is at all the
+  exchanges for each of the 3 trades Joe want do and highlight which is
+  the best rate at each.
+  
+  Other considerations: For backend or full stack dev applicants:
+  
+  - Please complete the challenge using Node.js.
+  - Can simply print out results in console log.
+      
+  Extra points for:
+      
+  - Tracking results over time
+  - Integrating data from more exchanges
+  - Display how much more Joe will get when he makes each trade at
+    exchange A vs exchange B
+  - Make results accessible via an API
+  - Display results in web page
+* Design
+** TODO Application
+   Using a library, create a web service suitable for creating the
+   RESTful web service and hosting a web application. [[http://mern.io/][MERN]] seems like
+   a good place to start.
+
+   The application needs the following
+   - Host the React web application
+   - Get the current exchange rate from a given exchange API
+     - Must handle at least two exchanges
+     - Compare exchanges with one another. Note the verbiage, "how
+       much more Joe will get when he makes each trade at exchange A
+       vs exchange B".
+     - The web page should look at one exchange, then compare it with
+       all others in the given list
+   - Persist the given data into a database so results can be tracked
+     - May need to generate a file to populate a database
+     - Depending on the APIs, we may be able to pull back historical
+       data to populate the database.
+*** TODO Components
+    The application will need the following components
+
+    - =Router= An express router to handle incoming traffic.
+      - Don't handle exceptions stupidly. Pass them to one error
+        handling function.
+    - =Currency= Representing the cryptocurrency, should contain the
+      human readable name and the trading name.
+      - Need four total for each of the coins listed.
+    - =Exchange= An exchange should have =getRate()= function that
+      will go out, get the rate and return it to the invoking
+      function. All exchanges should implement this interface.
+      - =Persist= An abstract way of persisting the information to the
+        database.
+        - May need to handle different ways of putting information in
+          it. One way is via websockets.
+*** TODO API
+    The application should have the following endpoints. Let's do this
+    right and make it RESTful!
+
+    This may seem a bit weird at first, but this is the desired
+    plan. As a user, if a wanted to trade my BitCoins in and wanted
+    the best value, then I would need to know what coin I'm trading
+    for and see a list of the exchanges. Selecting the exchange first
+    is awkward. How do I know it's the cheapest? I don't. I need to
+    know what I'm trading, then I can find the correct exchanges. This
+    simulates the problem better.
+
+    - =/e= A list of all possible exchanges. It's possible for there
+      to be a case where an exchange isn't registered for a given
+      market. Not in the scope of this problem.
+
+      It would be interesting though, to have a set of exchanges that
+      could be dynamically hooked to a market. A market has
+      information for two coins
+    - =/m= A list of markets
+    - =/m/:market= Stubbed response, shouldn't come from either
+      exchange or pick one "master"
+    - =/m/:market/e= A list of information for every registered
+      exchange for the given market
+      - =order= optional parameter, enumeration, can be =asc= (ascending) or
+        =desc= (descending). The presence of the parameter will
+        implicitly provide a difference between the current exchange
+        and the cheapest.
+      - =amount= optional parameter, number, will evaluate the price
+        of cryptocoins exchanged
+    - =/m/:market/e/:exchange= Information for a specific exchange
+      - =amount= optional parameter, number, will evaluate the price
+        of cryptocoins exchanged
+**** How will this tie into the web application?
+     Steps on how this will all work on the web application
+
+     1. Web application will query the list of exchanges and display
+        on the page.
+     2. Clicking on an exchange will display information about the
+        exchange. It also allows the user to input what they're
+        trading. The lists should be pulled from the list of
+        currencies supported.
+     3. Once a from and to currency has been selected, then display
+        the exchange rate. The web page can then display the
+        difference.
+
+        The list of exchanges and currencies should be cached.
+*** TODO Persistence
+    Persistence was added because of the "track results over
+    time". But does that make sense? Would we only track it whenever a
+    query was made to grab data? Shouldn't we be pulling historical
+    data from the API?
+
+    If not, persist the data to a database. It would be great if this
+    were MongoDB, but doesn't need to be. An in memory database would
+    be super awesome or something that requires little setup.
+
+    The persistence layer should be backend agnostic. There could be
+    different strategies that it takes. One being a MongoDB another
+    could be in memory. A MongoDB, in theory, could be placed in a
+    container and shared.
+*** TODO Web Page
+    /See shitty sketch/
+* Research
+** TODO ES7/ES8 Features
+   Some key features to use
+
+   - =async/await= Avoid callback hell
+   - =let= Use let instead of var to scope variables appropriately
+   - =const= define const variables
+** TODO Dependent APIs
+   We're trading one cryptocurrency for another, don't think in terms
+   of USD. If I sell 20 Bitcoins, how many Litecoins can I get in
+   return? This may be analogous to the stock market where there are
+   buy (or bid) and sell (or ask) orders. The problem is asking us to
+   find the best rate for buying Bitcoins. We'll need to look at
+   several exchanges, find the best sell rate, and group on that.
+   
+   Do we want to look at all the open buy trades? Or just an average?
+*** Poloniex
+    Has a generic market information with the average exchange for a
+    market.
+    
+    https://poloniex.com/public?command=returnTicker
+*** Bittrex
+    Has a generic market information with the average exchange for a
+    market.
+
+    https://bittrex.com/api/v1.1/public/getticker?market=btc-ltc
+*** BTC-E
+    This would be the last one to use. Little documentation, seems
+    weird.
+* Implement
