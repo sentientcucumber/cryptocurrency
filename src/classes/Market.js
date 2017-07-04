@@ -1,4 +1,6 @@
-class Market {
+'use strict';
+
+export default class Market {
 
   constructor(name) {
     this.name = name;
@@ -8,5 +10,3 @@ class Market {
     this.ask = split[1];
   }
 }
-
-module.exports = Market;

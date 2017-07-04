@@ -1,8 +1,7 @@
-const Exchange = require('./Exchange');
-const request  = require('request');
-const format   = require('util').format;
+import Exchange from './Exchange';
+import request from 'request';
 
-class PoloniexExchange extends Exchange {
+export default class PoloniexExchange extends Exchange {
 
   constructor() {
     super('Poloniex', 'https://poloniex.com/public?command=returnTicker');
@@ -17,24 +16,18 @@ class PoloniexExchange extends Exchange {
         return callback(err);
       }
 
-      try {
-        let prop = `${market.bid.toUpperCase()}_${market.ask.toUpperCase()}`;
-        
-        let a = amount;
-        if (a) {
-          a = a / body[prop].lowestAsk;
-        }
- 
-        return callback(null, {
-          name: this.name,
-          ask: parseFloat(body[prop].lowestAsk),
-          amount: a
-        });
-      } catch(e) {
-        return callback(e);
+      let prop = `${market.bid.toUpperCase()}_${market.ask.toUpperCase()}`;
+      let ask = parseFloat(body[prop].lowestAsk);
+      let result = {
+        name: this.name,
+        ask: ask
+      };
+      
+      if (amount) {
+        result.amount = amount / result.ask;
       }
+      
+      return callback(null, result);
     });
   }
 }
-
-module.exports = PoloniexExchange;

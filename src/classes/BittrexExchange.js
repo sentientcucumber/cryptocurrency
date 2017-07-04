@@ -1,6 +1,5 @@
-const Exchange = require('./Exchange');
-const request  = require('request');
-const format   = require('util').format;
+import Exchange from './Exchange';
+import request from 'request';
 
 class BittrexExchange extends Exchange {
 
@@ -20,18 +19,19 @@ class BittrexExchange extends Exchange {
         return callback(err);
       }
 
-      let a = amount;
-      if (a) {
-        a = a / body.result.Ask;
+      let ask = body.result.Ask;
+      let result = {
+        name: this.name,
+        ask: ask
+      };
+
+      if (amount) {
+        result.amount = amount / result.ask;
       }
 
-      return callback(null, {
-        name: this.name,
-        ask: body.result.Ask,
-        amount: a
-      });
+      return callback(null, result);
     });
   }
 }
 
-module.exports = BittrexExchange;
+export default BittrexExchange;

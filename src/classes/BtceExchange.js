@@ -1,6 +1,5 @@
-const Exchange = require('./Exchange');
-const request  = require('request');
-const format   = require('util').format;
+import Exchange from './Exchange';
+import request from 'request';
 
 class BtceExchange extends Exchange {
 
@@ -23,23 +22,18 @@ class BtceExchange extends Exchange {
         return callback(err);
       }
 
-      try {
-        let a = amount;
-        if (a) {
-          a = a / body[m].sell;
-        }
- 
-        return callback(null, {
-          name: this.name,
-          ask: parseFloat(body[m].sell),
-          amount: a
-        });
-      } catch(e) {
-        console.log(e);
-        return callback(e);
+      let result = {
+        name: this.name,
+        ask: parseFloat(body[m].sell)
+      };
+
+      if (amount) {
+        result.amount = amount / result.ask;
       }
+        
+      return callback(null, result);
     });
   }
 }
 
-module.exports = BtceExchange;
+export default BtceExchange;

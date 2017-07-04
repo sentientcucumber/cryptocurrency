@@ -1,10 +1,11 @@
-const express = require('express');
-const controller = require('../controllers/merchant.controller.js');
+import express from 'express';
+import * as Controller from '../controllers/merchant.controller';
+
 const router  = express.Router();
 
 router
-  .get('/markets', controller.getMarkets)
-  .get('/markets/:market', controller.getMarket)
-  .get('/markets/:market/exchanges', controller.getExchange);
+  .get('/markets', Controller.getMarkets)
+  .get('/markets/:market', Controller.getMarket)
+  .get('/markets/:market/exchanges', Controller.getExchange);
 
-module.exports = router
+export default router;

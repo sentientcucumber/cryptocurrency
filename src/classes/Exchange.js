@@ -6,4 +6,4 @@ class Exchange {
   }
 }
 
-module.exports = Exchange;
+export default Exchange;

@@ -1,11 +1,11 @@
-const request          = require('request');
-const _                = require('lodash');
-const format           = require('util').format;
-const async            = require('async');
-const Market           = require('../classes/Market');
-const PoloniexExchange = require('../classes/PoloniexExchange');
-const BittrexExchange  = require('../classes/BittrexExchange');
-const BtceExchange     = require('../classes/BtceExchange');
+import request from 'request';
+import _ from 'lodash';
+import async from 'async';
+import Market from '../classes/Market';
+import Record from '../models/Record';
+import PoloniexExchange from '../classes/PoloniexExchange';
+import BittrexExchange from '../classes/BittrexExchange';
+import BtceExchange from '../classes/BtceExchange';
 
 // A list of registered markets.
 var markets = {
@@ -24,7 +24,7 @@ var exchanges = [
 /**
  * Get information for a specific market.
  */
-function getMarket(req, res, next) {
+export function getMarket(req, res, next) {
   let market = findMarket(req, next);
   if (!market) {
     return next(404);
@@ -36,14 +36,14 @@ function getMarket(req, res, next) {
 /**
  * Get the list of registered markets.
  */
-function getMarkets(req, res, next) {
+export function getMarkets(req, res, next) {
   return res.json(_.map(markets, 'name'));
 }
 
 /**
  * Get the exchange information for a given market.
  */
-function getExchange(req, res, next) {
+export function getExchange(req, res, next) {
   let market = findMarket(req);
   if (!market) {
     return next(404);
@@ -53,6 +53,8 @@ function getExchange(req, res, next) {
     if (err) {
       return res.json(err);
     }
+
+    persist(market, results);
 
     return res.json({
       market: market.name,
@@ -126,8 +128,22 @@ function amountDifference(exchanges) {
   }
 }
 
-module.exports = {
-  getMarket,
-  getMarkets,
-  getExchange
-};
+/**
+ * Persist the results to the database.
+ */
+function persist(market, results) {
+  // Record the same time and date for all the transactions.
+  let time = Date.now();
+
+  results.forEach((result) => {
+    const record = new Record({
+      exchange: result.name,
+      market: market.name,
+      ask: result.ask,
+      amount: result.amount,
+      time 
+    });
+
+    record.save();
+  });
+}

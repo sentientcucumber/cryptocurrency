@@ -1,17 +1,23 @@
-const express = require('express');
-const markets = require('./routes/markets.routes.js');
+import express from 'express';
+import mongoose from 'mongoose';
+import marketRoutes from './routes/markets.routes'
+
 const app = express();
 
+mongoose.connect('mongodb://localhost/cc', {
+  useMongoClient: true
+});
+
 app
-  .use('/', markets)
+  .use('/', marketRoutes)
   .use((err, req, res, next) => {
     if (Number.isInteger(err)) {
-      return res.status(err).json({
-        error: 'error'
-      });
+      if (err === 404) {
+        return res.status(err).json({
+          error: `No resource available at ${req.path}`
+        });
+      }
     }
   });
 
-app.listen(8080, () => {
-  console.log('Listening on port 8080');
-});
+app.listen(8080);
