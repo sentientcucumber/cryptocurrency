@@ -1,0 +1,128 @@
+#+TITLE: cryptocurrency
+
+* Setup
+  To get setup and running
+  
+  #+BEGIN_SRC sh
+    git clone https://github.com/sentientcucumber/cryptocurrency.git
+    cd cryptocurrency
+    npm install
+    npm start
+  #+END_SRC
+** Database
+   The application saves the results from all
+   =/markets/:market/exchanges= to a Mongo database (not including the
+   differences). The database is setup to be named =cc= and stores in
+   the =records= collection.
+* API
+  Documentation for the cryptocurrency API.
+** Glossary
+  - market :: A market is comprised of two cryptocurrencies separated
+              by an underscore, _. The coin before the underscore is
+              the currency being sold and the one after is the
+              currency purchased. For example, in the response below,
+              =btc_eth= means Bitcoin is being sold for Ethereum.
+  - bid :: The currency being sold.
+  - ask :: The currency being purchased.
+** Formatting
+   If you're running the curl commands provided here, to help with
+   readability, you can pipe the results to a Python script (comes
+   with most Python installs, I believe works for 2 or 3) for
+   formatting.
+
+   #+BEGIN_SRC sh
+     curl command... | python -m json.tool 
+   #+END_SRC
+** GET =/markets=
+   Get a list of the available markets.
+
+   #+BEGIN_SRC sh
+     curl http://localhost:8080/markets
+   #+END_SRC
+   
+   The list of the registered markets.
+      
+   #+BEGIN_SRC json
+     [
+       "btc_eth",
+       "btc_ltc",
+       "btc_dash"
+     ]
+   #+END_SRC
+*** TODO TODO
+    - Add a =POST= method to create more markets through the API.
+** GET =/markets/:market=
+   Get information for one market. The market can be any of the
+   markets in the list retrieved from the =GET /markets= request.
+
+   #+BEGIN_SRC sh
+     curl http://localhost:8080/markets/btc_eth
+   #+END_SRC
+   
+   Information about the given market, including the name of the
+   market, bid, and ask currency.
+
+   #+BEGIN_SRC json
+     {
+       "name": "btc_eth",
+       "bid": "btc",
+       "ask": "eth"
+     }
+   #+END_SRC
+*** TODO TODO
+    - Choose a primary exchange to get more detailed information about
+      an exchange. Take an optional query parameter to choose a
+      different exchange to pull information from.
+** GET =/markets/:market/exchanges=
+   Get information for a given market across the list of registered
+   exchanges.
+
+   Takes the following optional query parameters
+   - =order= :: Determines how the exchanges are sorted can be =asc=
+                (the default, ascending order) or =desc= (descending).
+   - =amount= :: Allows the user to provide an amount for the bid
+                 currency. Returns the total amount of asking coins
+                 that could be purchased.
+
+   #+BEGIN_SRC sh
+     curl http://localhost:8080/markets/btc_eth/exchanges\?amount=20
+   #+END_SRC
+   
+   Provides a list of the registered exchanges and information about
+   their rate for the asking currency, the rate difference
+   (=askDifference=) and the amount and amount difference. If the
+   =amount= query parameter is not provided, =amount= and
+   =amountDifference= is not returned.
+
+   #+BEGIN_SRC json
+     {
+       "market": "btc_eth",
+       "exchanges": [
+          {
+             "name": "Bittrex",
+             "ask": 0.104489,
+             "amount": 191.4077079884007,
+             "askDifference": "0.00000000",
+             "amountDifference": "0.00000000"
+          },
+          {
+             "name": "BTC-E",
+             "ask": 0.10478,
+             "amount": 190.8761213972132,
+             "askDifference": "0.00029100",
+             "amountDifference": "-0.53158659"
+          },
+          {
+             "name": "Poloniex",
+             "ask": 0.104825,
+             "amount": 190.79418077748628,
+             "askDifference": "0.00033600",
+             "amountDifference": "-0.61352721"
+          }
+       ]
+     }
+   #+END_SRC
+** TODO TODO
+   - Add an =/exchange= endpoint to get a list of the registered
+     exchanges. Possible to support =POST= method to add exchanges,
+     but need a safe way to upload exchange code.

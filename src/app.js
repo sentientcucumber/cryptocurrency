@@ -17,6 +17,10 @@ app
           error: `No resource available at ${req.path}`
         });
       }
+
+      return res.status(500).json({
+        error: 'An error occurred'
+      });
     }
   });
 
